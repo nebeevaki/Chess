@@ -67,6 +67,7 @@ class GameState():
                     self.moveFunction[piece](r, c, moves)  # calls the appropriate move function based on piece type
         return moves
 
+
     """
     Get all the Pawn moves for the pawn located at row, col and add these moves to the list
     """
