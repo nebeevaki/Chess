@@ -34,6 +34,7 @@ def main():
     moveMade = False #flag variable for when a move is made
 
 
+
     load_images() #only do this once, before the while loop
     running = True
     sqSelected = () #no square is selected, keep track of the last click of the user (tiple: (row, col))
@@ -51,6 +52,7 @@ def main():
                 if sqSelected == (row, col): #the user clicked the same square twice
                     sqSelected = () #deselect
                     playerClicks = [] #clear player clicks
+
                 else:
                     sqSelected = (row, col)
                     playerClicks.append(sqSelected) #append for both 1st and 2nd clicks
@@ -60,8 +62,10 @@ def main():
                     if move in validMoves:
                         gs.makeMove(move)
                         moveMade = True
-                    sqSelected = () #reset user clicks
-                    playerClicks = []
+                        sqSelected = () #reset user clicks
+                        playerClicks = []
+                    else:
+                        playerClicks = [sqSelected]
             #key handler
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z: #undo when 'z' is pressed
