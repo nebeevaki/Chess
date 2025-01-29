@@ -3,6 +3,7 @@ This class is responsible for storing all the information about the current stat
 It will also be responsible for determining the valid moves at the current state.
 It will also keep a move log.
 """
+import copy
 
 class GameState():
     def __init__(self):
@@ -73,9 +74,9 @@ class GameState():
                 self.board[move.endRow][move.endCol-2] = "--"  # erase old rook
 
         # update castling rights - whenever it is a rook or a king move
-        self.updateCastlRights(move)
+        self.updateCastleRights(move)
         self.castleRightsLog.append(CastleRights(self.currentCastlingRight.wks, self.currentCastlingRight.bks,
-                                             self.currentCastlingRight.wqs, self.currentCastlingRight.bqs))
+                                                 self.currentCastlingRight.wqs, self.currentCastlingRight.bqs))
 
 
 
@@ -103,7 +104,9 @@ class GameState():
                 self.enpassantPossible = ()
             # undo castling rights
             self.castleRightsLog.pop()
-            self.currentCastlingRight = self.castleRightsLog[-1]
+            newRights = copy.deepcopy(self.castleRightsLog[-1])
+            self.currentCastlingRight = CastleRights(newRights.wks, self.currentCastlingRight.bks,
+                                                     newRights.wqs, self.currentCastlingRight.bqs)
             # undo castle move
             if move.isCastleMove:
                 if move.endCol - move.startCol == 2: #king side
@@ -116,7 +119,7 @@ class GameState():
     """
     Updatge the castle rights given the move
     """
-    def updateCastlRights(self, move):
+    def updateCastleRights(self, move):
         if move.pieceMoved == "wK":
             self.currentCastlingRight.wks = False
             self.currentCastlingRight.wqs = False
@@ -134,6 +137,18 @@ class GameState():
                 if move.startCol == 0:
                     self.currentCastlingRight.bqs = False
                 elif move.startCol == 7:
+                    self.currentCastlingRight.bks = False
+        if move.pieceCaptured == 'wR':
+            if move.endRow == 7:
+                if move.endCol == 0:
+                    self.currentCastlingRight.wqs = False
+                elif move.endCol == 7:
+                    self.currentCastlingRight.wks = False
+        elif move.pieceCaptured == 'bR':
+            if move.endRow == 0:
+                if move.endCol == 0:
+                    self.currentCastlingRight.bqs = False
+                elif move.endCol == 7:
                     self.currentCastlingRight.bks = False
 
 
@@ -334,17 +349,17 @@ class GameState():
         if self.squareUnderAttack(r, c):
             return
         if (self.whiteToMove and self.currentCastlingRight.wks) or (not self.whiteToMove and self.currentCastlingRight.bks):
-            self.getKingsideCasleMoves(r, c, moves)
+            self.getKingsideCastleMoves(r, c, moves)
         if (self.whiteToMove and self.currentCastlingRight.wqs) or (not self.whiteToMove and self.currentCastlingRight.bqs):
-            self.getQueensideCasleMoves(r, c, moves)
+            self.getQueensideCastleMoves(r, c, moves)
 
-    def getKingsideCasleMoves(self, r, c, moves):
-        if self.board[r][c+1] == "--" and self.board[r][c+2] == "--":
+    def getKingsideCastleMoves(self, r, c, moves):
+        if self.board[r][c+1] == "--" and self.board[r][c+2] == "--" and self.board[r][c+3][0] == ("w" if self.whiteToMove else "b") and self.board[r][c+3][1] == "R":
             if not self.squareUnderAttack(r, c+1) and not self.squareUnderAttack(r, c+2):
                 moves.append(Move((r, c), (r, c+2), self.board, isCastleMove=True))
 
-    def getQueensideCasleMoves(self, r, c, moves):
-        if self.board[r][c-1] == "--" and self.board[r][c-2] == "--" and self.board[r][c-3] == "--":
+    def getQueensideCastleMoves(self, r, c, moves):
+        if self.board[r][c-1] == "--" and self.board[r][c-2] == "--" and self.board[r][c-3] == "--" and self.board[r][c-4][0] == ("w" if self.whiteToMove else "b") and self.board[r][c-4][1] == "R":
             if not self.squareUnderAttack(r, c - 1) and not self.squareUnderAttack(r, c - 2) and not self.squareUnderAttack(r, c - 3):
                 moves.append(Move((r, c), (r, c-2), self.board, isCastleMove=True))
 
